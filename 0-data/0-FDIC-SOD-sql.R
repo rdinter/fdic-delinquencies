@@ -30,6 +30,8 @@ fdic_db <- dbConnect(SQLite(), "0-data/FDIC/fdic.sqlite")
 # NEED TO MAKE SURE THIS IS NOT TAKING THE HISTORICAL SOD DATA TOO
 fdic_files <- dir(data_source, full.names = T, pattern = ".zip")
 
+fdic_files <- fdic_files[grepl("ALL", fdic_files)]
+
 files <- map(fdic_files, function(x){
   temp_name <- paste0(str_sub(basename(x), 1, -5), "_")
   txts <- unzip(x, list = T)[, 1]

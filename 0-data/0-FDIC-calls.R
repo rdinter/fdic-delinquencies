@@ -33,9 +33,9 @@ fdic_links <- paste0("https://www5.fdic.gov/sdi/Resource/AllReps/All_Reports_",
                      paste0(year_file$Var1, year_file$Var2), ".zip")
 
 map(fdic_links, function(x){
-  Sys.sleep(runif(1, 2, 3))
   file_x <- paste0(data_source, "/", basename(x))
   if (!file.exists(file_x) & !http_error(x)) {
+    Sys.sleep(runif(1, 2, 3))
     download.file(x, file_x, method = "libcurl")
   }
 })

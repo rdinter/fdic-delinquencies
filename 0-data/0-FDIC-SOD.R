@@ -60,15 +60,15 @@ branches <- j5 %>%
          STALPBR, ZIPBR, DEPSUMBR, DEPSUM, ASSET, SIMS_ACQUIRED_DATE,
          SIMS_ESTABLISHED_DATE, SIMS_LATITUDE, SIMS_LONGITUDE,
          SIMS_PROJECTION) %>% 
-  mutate_at(vars(YEAR, DEPSUMBR, DEPSUM, ASSET, SIMS_LATITUDE, SIMS_LONGITUDE),
+  mutate_at(vars(YEAR, CERT, DOCKET, BRNUM, UNINUMBR, RSSDHCR, RSSDID, ZIPBR,
+                 DEPSUMBR, DEPSUM, ASSET, SIMS_LATITUDE, SIMS_LONGITUDE),
             funs(parse_number))
 
 names(branches) <- tolower(names(branches))
 
-write_csv(branches, paste0(local_dir, "/generic_branches.csv"))
-write_rds(branches, paste0(local_dir, "/generic_branches.rds"))
 
-
+# write_csv(branches, paste0(local_dir, "/generic_branches.csv"))
+# write_rds(branches, paste0(local_dir, "/generic_branches.rds"))
 
 # ---- pre1994 ------------------------------------------------------------
 
@@ -79,7 +79,8 @@ write_rds(branches, paste0(local_dir, "/generic_branches.rds"))
 library("googledrive")
 
 bouwman <- as_id("0B8rxlwlMcXW1aXRPMVVzZ19vWlU")
-drive_download(bouwman, path = paste0(data_source, "/SoD8193data.zip"))
+drive_download(bouwman, path = paste0(data_source, "/SoD8193data.zip"),
+               overwrite = T)
 
 bouwman_zip <- paste0(data_source, "/SoD8193data.zip")
 
@@ -95,4 +96,8 @@ bouwman <- read_csv(bouwman_zip, col_types = cols(.default = "c")) %>%
 non_summary <- bouwman %>% 
   filter(brnum != "-1") %>% 
   mutate_at(vars(depsumbr:num_offices, rssdid, rssdhcr), parse_number) %>% 
-  mutate(fips = 1000*state_code + county_code)
+  mutate(fips = 1000*state_code + county_code,
+         year = parse_number(str_sub(date, 1, 4)))
+
+write_csv(non_summary, paste0(local_dir, "/bouwman_branches.csv"))
+write_rds(non_summary, paste0(local_dir, "/bouwman_branches.rds"))
