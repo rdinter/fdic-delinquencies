@@ -1,6 +1,7 @@
 # Summary of Deposits from FDIC
 # https://www5.fdic.gov/sod/dynaDownload.asp?barItem=6
 
+library("httr")
 library("tidyverse")
 
 local_dir   <- "0-data/FDIC/SOD"
@@ -13,7 +14,7 @@ if (!file.exists(data_source)) dir.create(data_source, recursive = T)
 sod_defs     <- paste0(local_dir, "/sod_variables_definitions.xls")
 sod_defs_url <- paste0("https://www5.fdic.gov/sod/pdf/",
                        "sod_variables_definitions.xls")
-if (!file.exists(sod_defs)) download.file(sod_defs_url, sod_defs)
+if (!file.exists(sod_defs)) download.file(sod_defs_url, sod_defs, mode = "wb")
 
 # Download the files into raw if they do not currently exist:
 
@@ -26,9 +27,9 @@ sod_files <- paste0(data_source, "/ALL_",
                     format(Sys.Date(), "%Y"):1994, ".zip")
 
 map2(sod_urls, sod_files, function(urls, files){
-  if (!file.exists(files)) {
+  if (!file.exists(files) & !http_error(urls)) {
     Sys.sleep(runif(1, 2, 3))
-    download.file(urls, files)
+    download.file(urls, files, mode = "wb")
     }
   })
 
@@ -39,6 +40,10 @@ map2(sod_urls, sod_files, function(urls, files){
 #  for older versions of excel that cannot handle that many rows. Avoid those
 #  files by unzipping then selecting only the main file with the ALL_YEAR.csv
 #  and avoid the ALL_YEAR1.csv and ALL_YEAR2.csv or other files.
+
+# Get zip files for SOD, but not the historical
+sod_files <- dir(data_source, full.names = T, pattern = ".zip")
+sod_files <- sod_files[!grepl("SoD8193data.zip", sod_files)]
 
 temp_dir <- tempdir()
 
@@ -62,7 +67,7 @@ branches <- j5 %>%
          SIMS_PROJECTION) %>% 
   mutate_at(vars(YEAR, CERT, DOCKET, BRNUM, UNINUMBR, RSSDHCR, RSSDID, ZIPBR,
                  DEPSUMBR, DEPSUM, ASSET, SIMS_LATITUDE, SIMS_LONGITUDE),
-            funs(parse_number))
+            parse_number)
 
 names(branches) <- tolower(names(branches))
 
@@ -88,7 +93,7 @@ bouwman <- read_csv(bouwman_zip, col_types = cols(.default = "c")) %>%
   rename(rssdid = RSSD9001, charter_type = RSSD9048, rssdhcr = RSSD9348,
          primary_insurer = RSSD9424, bank_type_analysis_code = RSSD9425,
          depsumbr = SUMD2700, namefull = SUMD9011, brnum = SUMD9021,
-         cert = SUMD9050, addresbr = SUMD9110, citybr = SUMD9135,
+         cert = SUMD9050, addressbr = SUMD9110, citybr = SUMD9135,
          county_code = SUMD9150, pmsa = SUMD9180, state_code = SUMD9210,
          bank_system_code = SUMD9310, num_offices = SUMD9380)
 

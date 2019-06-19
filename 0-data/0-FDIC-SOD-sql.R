@@ -27,9 +27,8 @@ if (!file.exists(data_source)) dir.create(data_source)
 fdic_db <- dbConnect(SQLite(), "0-data/FDIC/fdic.sqlite")
 # unlink(paste0(local_dir, "fdic_sod.sqlite"))
 
-# NEED TO MAKE SURE THIS IS NOT TAKING THE HISTORICAL SOD DATA TOO
+# Make sure this is not selecting the Bouwman historical data
 fdic_files <- dir(data_source, full.names = T, pattern = ".zip")
-
 fdic_files <- fdic_files[grepl("ALL", fdic_files)]
 
 files <- map(fdic_files, function(x){
@@ -44,6 +43,7 @@ files <- map(fdic_files, function(x){
 })
 
 files     <- bind_rows(files)
+# Do not select the _1 and _2 tables because they duplicate ALL
 files_all <- filter(files, !(tables %in% c(1,2)))
 
 # Add in the tables
@@ -56,10 +56,14 @@ sod <- pmap(files_all, function(file_zip, file_csv, tables){
 
 sod <- bind_rows(sod)
 
+# Bouwman historical data
+bouwman <- read_rds("0-data/FDIC/SOD/bouwman_branches.rds")
+
+
 # ---- branch -------------------------------------------------------------
 
-# TO DO: the uninumbr is not missing for a lot of branches, this needs to be
-#  clarified so there is a consistent identifier for a branch.
+# TO DO: the uninumbr is missing for a lot of branches pre-2011, this needs to
+#  be clarified so there is a consistent identifier for a branch.
 
 branch <- sod %>% 
   select(addresbr, bkmo, brcenm, brnum, brsertyp, cbsa_div_namb, city2br,
@@ -110,6 +114,29 @@ branch <- sod %>%
                  stnumbr, uninumbr, zipbr, year, cert),
             parse_number) %>% 
   distinct()
+
+# apply(branch, 2, function(x) sum(is.na(x)))
+# addresbr                  bkmo                brcenm                 brnum 
+# 59                     0               1888746                     0 
+# brsertyp         cbsa_div_namb               city2br                citybr 
+# 0               1727398                     0                     0 
+# cntrynab              cntynamb              cntynumb               consold 
+# 0                     0                     0               2198253 
+# csabr              csanambr              depsumbr             divisionb 
+# 0                644618                     0                     0 
+# metrobr               microbr                 msabr               msanamb 
+# 0               2260030                     0                495218 
+# namebr               necnamb               nectabr              placenum 
+# 3               2172709                     0                    72 
+# sims_acquired_date      sims_description sims_established_date         sims_latitude 
+# 1792904                130999               1221609                226970 
+# sims_longitude       sims_projection               stalpbr              stcntybr 
+# 226976                131516                     0                     0 
+# stnamebr               stnumbr              uninumbr                   usa 
+# 0                     0                225118                     0 
+# zipbr                  year                  cert              namefull 
+# 0                     0                     0                     0 
+
 
 # Need to adjust the latitude and longitudes that are missing, but cannot do
 #  it via brnum/uninumbr because there are missing IDs
