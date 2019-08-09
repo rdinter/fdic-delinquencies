@@ -47,18 +47,24 @@ files     <- bind_rows(files)
 files_all <- filter(files, !(tables %in% c(1,2)))
 
 # Add in the tables
-sod <- pmap(files_all, function(file_zip, file_csv, tables){
+sod_map <- pmap(files_all, function(file_zip, file_csv, tables){
   j5 <- read_csv(unz(file_zip, file_csv), col_types = cols(.default = "c"))
   names(j5) <- tolower(names(j5))
   print(file_csv)
   return(j5)
 })
 
-sod <- bind_rows(sod)
+sod <- bind_rows(sod_map)
+
+# ---- bouwman ------------------------------------------------------------
 
 # Bouwman historical data
-bouwman <- read_rds("0-data/FDIC/SOD/bouwman_branches.rds")
+branch_bouwman <- read_rds("0-data/FDIC/SOD/branch_bouwman.rds")
+institution_bouwman <- read_rds("0-data/FDIC/SOD/institution_bouwman.rds")
 
+dbWriteTable(fdic_db, "SOD_branch_bouwman", branch_bouwman, overwrite = T)
+dbWriteTable(fdic_db, "SOD_institution_bouwman", institution_bouwman,
+             overwrite = T)
 
 # ---- branch -------------------------------------------------------------
 
@@ -72,7 +78,7 @@ branch <- sod %>%
          necnamb, nectabr, placenum, sims_acquired_date, sims_description,
          sims_established_date, sims_latitude, sims_longitude, sims_projection,
          stalpbr, stcntybr, stnamebr, stnumbr, uninumbr, usa, zipbr, year,
-         cert, namefull) %>%
+         rssdid, cert, namefull) %>%
   mutate(bkmo = factor(bkmo, levels = c("0", "1"),
                        labels = c("branch", "main office")),
          brcenm = factor(brcenm, levels = c("C", "E", "N", "M"),
@@ -111,7 +117,7 @@ branch <- sod %>%
                                  "headquartered in US"))) %>% 
   mutate_at(vars(brnum, cntynumb, consold, csabr, depsumbr, divisionb, msabr,
                  nectabr, placenum, sims_latitude, sims_longitude, stcntybr,
-                 stnumbr, uninumbr, zipbr, year, cert),
+                 stnumbr, uninumbr, zipbr, year, cert, rssdid),
             parse_number) %>% 
   distinct()
 
@@ -141,7 +147,7 @@ branch <- sod %>%
 # Need to adjust the latitude and longitudes that are missing, but cannot do
 #  it via brnum/uninumbr because there are missing IDs
 branch <- branch %>% 
-  arrange(cert, brnum, uninumbr, year) %>% 
+  arrange(rssdid, cert, brnum, uninumbr, year) %>% 
   mutate(lat = if_else(sims_latitude < 10, NA_real_, sims_latitude),
          long = if_else(sims_longitude > -50, NA_real_, sims_longitude)) %>% 
   mutate(lat = if_else(is.na(lat) | is.na(long), NA_real_, lat),
@@ -159,6 +165,8 @@ branch <- branch %>%
 #####
 ### LEFT OFF
 ##############
+# There are too many missing right now, which is problematic
+
 na_lons_google <- branch %>% 
   filter(is.na(lat)) %>% 
   select(addresbr, citybr, stalpbr, zipbr) %>% 
