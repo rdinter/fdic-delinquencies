@@ -4,7 +4,6 @@
 
 library("DBI")
 library("RSQLite")
-library("stringr")
 library("tidyverse")
 
 local_dir   <- "0-data/FDIC/calls"

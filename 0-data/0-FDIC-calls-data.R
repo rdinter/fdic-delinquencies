@@ -3,7 +3,6 @@
 # https://www5.fdic.gov/sdi/download_large_list_outside.asp
 
 library("httr")
-library("stringr")
 library("rvest")
 library("tidyverse")
 

@@ -6,7 +6,6 @@
 library("DBI")
 library("ggmap")
 library("RSQLite")
-library("stringr")
 library("tidyverse")
 library("zipcode")
 data("zipcode")

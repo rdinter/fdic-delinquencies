@@ -7,6 +7,8 @@ This repository is meant as a way for organizing FDIC Call Reports and Summary o
 For most users, the raw data are of the most importance and they are referenced above. However, this project is open-source and meant to be allow users to replicate the results to cross-check the validity of the data. If any errors are found, please submit a pull request.
 
 - Raw data can be found in the [0-data](0-data)
+    - Download the data: [`0-FDIC-calls-data.R`](0-FDIC-calls-data.R), [`0-FDIC-chicago-data.R`](0-FDIC-chicago-data.R), and [`0-FDIC-SOD-data.R`](0-FDIC-SOD-data.R)
+    - Insert data into SQL: [`0-FDIC-calls-sql.R`](0-FDIC-calls-sql.R), [`0-FDIC-chicago-sql.R`](0-FDIC-chicago-sql.R), and [`0-FDIC-SOD-sql.R`](0-FDIC-SOD-sql.R)
 - Tidy data can be found in [1-tidy](1-tidy)
 - Some generic figures can be found in [2-eda](2-eda)
 
@@ -21,15 +23,11 @@ devtools::install_github("rdinter/usdarnass")
 
 A quick reasoning for each package:
 
-- gdata - for some old excel files which cannot be read with up to date packages
-- haven - to read SAS files for the FJC data
-- httr - web scraping the USCourts.gov
-- lubridate - formatting for time series data
-- readxl - reading newer excel files
-- rvest - web scraping the USCourts.gov
-- stringr - useful for string parsing
-- tabulizer - useful for parsing the PDF tables
+- httr - web scraping of the FDIC and Chicago Fed
+- rvest - web scraping
 - tidyverse - useful for data munging
-- usdarnass - downloading data from QuickStats
-- zipcode - determining latitude and longitudes for locations in the FJC data
-- zoo - useful for time series data
+- [DBI](https://db.rstudio.com/dbi/) - database interface with R
+- RSQLite - able to create SQLite databases
+- haven - read in SAS
+- ggmap - mapping of locations
+- zipcode - coordinates of zip codes
