@@ -161,31 +161,29 @@ branch <- branch %>%
 #####
 # Grab the remaining missing ones and put them through the Google maps API
 
-#####
-### LEFT OFF
-##############
-# There are too many missing right now, which is problematic
-
 na_lons_google <- branch %>% 
   filter(is.na(lat)) %>% 
   select(addresbr, citybr, stalpbr, zipbr) %>% 
   distinct()
 
-na_locations <- read_rds("0-data/FDIC/SOD/na_locations.rds") %>% 
-  right_join(na_lons_google)
+if (file.exists("0-data/FDIC/SOD/na_locations.rds")) {
+  na_locations <- read_rds(paste0(local_dir,"/na_locations.rds")) %>% 
+    right_join(na_lons_google)
+  
+  na_lons_google <- na_locations %>% 
+    filter(is.na(lat)) %>% 
+    mutate(address = paste(if_else(is.na(addresbr) , "", addresbr),
+                           citybr, stalpbr, zipbr))
+}
 
-na_lons_google <- na_locations %>% 
-  filter(is.na(lat)) %>% 
-  mutate(address = paste(if_else(is.na(addresbr) , "", addresbr),
-                         citybr, stalpbr, zipbr))
-
+# If there are any locations which are still missing, find them.
 if (nrow(na_lons_google) > 0) {
   branch_locations_dsk <- geocode(na_lons_google$address,
                                   output = c("latlon"),
                                   source = c("dsk"))
   
   na_lons_google$lon <- branch_locations_dsk$lon
-  na_lons_google$lat  <- branch_locations_dsk$lat
+  na_lons_google$lat <- branch_locations_dsk$lat
   
   na_lons_google <- na_lons_google %>% 
     mutate(lat = if_else(lat < 10, NA_real_, lat),
@@ -205,11 +203,18 @@ if (nrow(na_lons_google) > 0) {
   na_lons_google2$lat     <- branch_locations_dsk2$lat
   na_lons_google2$address <- NULL
   
-  na_locations <- na_lons_google %>% 
-    filter(!is.na(lat)) %>% 
-    select(-address) %>% 
-    bind_rows(na_lons_google2) %>% 
-    bind_rows(na_locations)
+  if (exists("na_locations")) {
+    na_locations <- na_lons_google %>% 
+      filter(!is.na(lat)) %>% 
+      select(-address) %>% 
+      bind_rows(na_lons_google2) %>% 
+      bind_rows(na_locations)
+  } else {
+    na_locations <- na_lons_google %>% 
+      filter(!is.na(lat)) %>% 
+      select(-address) %>% 
+      bind_rows(na_lons_google2)
+  }
   
   write_rds(na_locations, paste0(local_dir,"/na_locations.rds"))
 }

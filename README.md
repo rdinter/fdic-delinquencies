@@ -14,20 +14,19 @@ For most users, the raw data are of the most importance and they are referenced 
 
 ## Packages Needed
 
-A few packages needs to be installed to maintain this repository. Most of these are on CRAN and can be installed with the `install.packages()` command but one requires the devtools to be installed to install a package on GitHub:
+A few packages needs to be installed to maintain this repository that are on CRAN and can be installed with the `install.packages()` command:
 
 ```R
-install.packages("devtools", "gdata", "haven", "httr", "lubridate", "readxl", "rvest", "stringr", "tabulizer", "tidyverse", "zipcode", "zoo")
-devtools::install_github("rdinter/usdarnass")
+install.packages(c("DBI", "ggmap", "haven", "httr", "RSQLite", "rvest", "tidyverse", "zipcode"))
 ```
 
 A quick reasoning for each package:
 
+- [DBI](https://db.rstudio.com/dbi/) - database interface with R
+- ggmap - mapping of locations
+- haven - read in SAS
 - httr - web scraping of the FDIC and Chicago Fed
+- RSQLite - able to create SQLite databases
 - rvest - web scraping
 - tidyverse - useful for data munging
-- [DBI](https://db.rstudio.com/dbi/) - database interface with R
-- RSQLite - able to create SQLite databases
-- haven - read in SAS
-- ggmap - mapping of locations
 - zipcode - coordinates of zip codes

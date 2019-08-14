@@ -60,7 +60,8 @@ bank <- c(RCFD2170 = "assets", RCFD2948 = "liabilities", RCFD3210 = "equity",
 farm <- c(RCON1230 = "ag_d_30", RCON1231 = "ag_d_90",
           RCON1232 = "ag_d_nonaccrual", RCON1233 = "ag_d_renegotiated",
           RCON1583 = "farm_d_nonaccrual", RCFD1583 = "farm_d_nonaccrual_alt",
-          RCON1584 = "farm_d_renegotiated", RCFD1584 = "farm_d_renegotiated_alt",
+          RCON1584 = "farm_d_renegotiated",
+          RCFD1584 = "farm_d_renegotiated_alt",
           RCON1590 = "farm_loans", RCFD1590 = "farm_loans_alt",
           RCON1594 = "farm_d_30", RCFD1594 = "farm_d_30_alt",
           RCON1597 = "farm_d_90", RCFD1597 = "farm_d_90_alt",
@@ -175,7 +176,7 @@ loan_vars <- c("loans", "loans_real_estate", "loans_pre841", "loans_pre842",
 j6 <- mutate_at(j6, vars(loan_vars), function(x) 1000*x)
 
 # Going to make my correction to the farmland loan value problem in 1979-03-31
-hey <- j6 %>% 
+j6_correct <- j6 %>% 
   filter(date > "1978-12-30", date < "1979-07-01") %>% 
   arrange(fed_rssd, date) %>% 
   group_by(fed_rssd) %>% 
@@ -184,7 +185,7 @@ hey <- j6 %>%
          temp = if_else(is.na(farmland_loans), 0, farmland_loans)) %>% 
   filter(n > 1)
 
-hey <- hey %>% 
+j6_correct <- j6_correct %>% 
   group_by(fed_rssd) %>% 
   mutate(farmland_loans_alt = case_when(is.na(lag(temp)) ~ temp,
                                         temp > 20*lag(temp) ~ lag(temp),
@@ -193,7 +194,7 @@ hey <- hey %>%
   select(date, fed_rssd, farmland_loans_alt)
 
 j6 <- j6 %>% 
-  left_join(hey) %>% 
+  left_join(j6_correct) %>% 
   mutate(farmland_loans_alt = if_else(is.na(farmland_loans_alt),
                                       farmland_loans, farmland_loans_alt))
 
@@ -210,9 +211,11 @@ j7 <- mutate(j6, farm_d_30 = if_else(date == "1983-09-30", 0, farm_d_30),
              farm_d_90_alt = if_else(date == "1983-09-30",
                                      farm_d_90_alt / 10000, farm_d_90_alt),
              ag_d_nonaccrual = if_else(date == "1983-09-30",
-                                       ag_d_nonaccrual / 10000, ag_d_nonaccrual),
+                                       ag_d_nonaccrual / 10000,
+                                       ag_d_nonaccrual),
              farm_d_nonaccrual = if_else(date == "1983-09-30",
-                                         farm_d_nonaccrual / 10000, farm_d_nonaccrual),
+                                         farm_d_nonaccrual / 10000,
+                                         farm_d_nonaccrual),
              farm_d_nonaccrual_alt = if_else(date == "1983-09-30",
                                              farm_d_nonaccrual_alt / 10000,
                                              farm_d_nonaccrual_alt)) %>% 
