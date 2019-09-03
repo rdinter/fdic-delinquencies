@@ -1,0 +1,281 @@
+---
+title: "Agricultural Delinquency Maps"
+author: Robert Dinterman
+date: "`r format(Sys.Date(), '%Y-%B-%d')`"
+output:
+  md_document:
+    variant: markdown_github
+---
+
+```{r start, include = FALSE}
+
+# Not really functional at this point
+
+#devtools::install_github("rdinter/albersusa")
+library("albersusa")
+#library("gganimate")
+library("knitr")
+library("lubridate")
+library("maptools")
+library("scales")
+library("sp")
+library("spdplyr")
+library("tidyverse")
+
+local_dir   <- "../2-eda"
+figures     <- paste0(local_dir, "/figures")
+if (!file.exists(local_dir)) dir.create(local_dir, recursive = T)
+if (!file.exists(figures)) dir.create(figures, recursive = T)
+
+county_recent <- read_rds("../1-tidy/county/county_branches_recent.rds") %>% 
+  select(year, fips = fips_br, agloans = lnag, agloans_re = lnreag,
+         agloans_d, agloans_d_alt, agloans_re_d, agloans_re_d_alt) %>% 
+  # Let's not worry about alternate drates yet
+  mutate(drate_ag_tot = (agloans_d + agloans_re_d) / (agloans + agloans_re),
+         drate_ag_prod = agloans_d / agloans,
+         drate_ag_re = agloans_re_d / agloans_re)
+
+# Total values
+tot_value <- dollar(sum(county_recent$agloans, na.rm = T) + sum(county_recent$agloans_re, na.rm = T), accuracy = 1000000)
+tot_delin <- percent((sum(county_recent$agloans_d, na.rm = T) + sum(county_recent$agloans_re_d, na.rm = T)) / (sum(county_recent$agloans, na.rm = T) + sum(county_recent$agloans_re, na.rm = T)), accuracy = .01)
+prod_value <- dollar(sum(county_recent$agloans, na.rm = T), accuracy = 1000000)
+prod_delin <- percent((sum(county_recent$agloans_d, na.rm = T)) / (sum(county_recent$agloans, na.rm = T)), accuracy = .01)
+re_value <- dollar(sum(county_recent$agloans_re, na.rm = T), accuracy = 1000000)
+re_delin <- percent((sum(county_recent$agloans_re_d, na.rm = T)) / (sum(county_recent$agloans_re, na.rm = T)), accuracy = .01)
+
+
+state_recent <- read_rds("../1-tidy/state/state_branches_recent.rds") %>% 
+  select(year, stalp = stalpbr, agloans = lnag, agloans_re = lnreag,
+         agloans_d, agloans_d_alt, agloans_re_d, agloans_re_d_alt) %>% 
+  # Let's not worry about alternate drates yet
+  mutate(drate_ag_tot = (agloans_d + agloans_re_d) / (agloans + agloans_re),
+         drate_ag_prod = agloans_d / agloans,
+         drate_ag_re = agloans_re_d / agloans_re)
+
+branches_recent <- read_csv("../1-tidy/branch/branches_recent.csv") %>% 
+  filter(!(stalpbr %in% c("AS", "FM", "GU", "MH", "MP", "VI", "PR", "PW")))
+coordinates(branches_recent) <- branches_recent[, c("long", "lat")]
+proj4string(branches_recent) <- CRS("+proj=longlat +datum=WGS84")
+branches_recent <- spTransform(branches_recent, us_laea_proj)
+
+loans_elided <- points_elided(branches_recent)
+coord <- coordinates(loans_elided)
+loans_elided$x <- coord[,1]
+loans_elided$y <- coord[,2]
+
+### Map Data
+gg_counties <- fortify(counties_composite("aeqd"))
+
+gg_states <- fortify(usa_composite("laea"), region = "iso_3166_2")
+gg_states$stalp <- gg_states$id
+
+gg_states_r <- left_join(gg_states, state_recent)
+
+delin_theme <- theme(panel.background = element_blank(),  # remove background
+        panel.grid = element_blank(), 
+        axis.line = element_blank(), 
+        axis.title = element_blank(),
+        axis.ticks = element_blank(),
+        axis.text = element_blank(),
+        legend.key.width = unit(3, "cm"),
+        legend.position = "bottom",
+        legend.box = "vertical",
+        legend.box.just = "bottom",
+        legend.text = element_text(size = 14),
+        plot.title = element_text(size = 20),
+        plot.subtitle = element_text(size = 14),
+        legend.key = element_rect(fill = "transparent",
+                                  color = "transparent"))
+
+```
+
+```{r global_options, include=FALSE}
+opts_chunk$set(cache = TRUE, echo = FALSE, warning = FALSE,
+               message = FALSE, out.height = "100%", out.width = "100%")
+```
+
+# Most recent data
+
+```{r recent-tot}
+title_recent <- paste0("Agricultural Performance since Q",
+                       str_sub(max(state_recent$year), -1),
+                          " ", str_sub(max(state_recent$year - 1), 1, 4))
+# subtitle_recent <- paste0("12-month period ending after Q",
+#                           str_sub(max(state_recent$year), -1),
+#                           " ",
+#                           str_sub(max(state_recent$year), 1, 4))
+subtitle_recent <- paste0("Average Total Loan Value of ", tot_value,
+                          " with Deliquency Rate of ", tot_delin)
+
+p1 <- ggplot(gg_states_r, aes(x = long, y = lat)) +
+  geom_polygon(aes(group = group, fill = drate_ag_tot), colour = "grey") +
+  # geom_point(data = loans_elided@data,
+  #            aes(x, y, size = agloans + agloans_re),
+  #            color = "black", alpha = 0.5) +
+  delin_theme +
+  scale_fill_gradient(low = "white", high = "blue",
+                      labels = percent, oob = squish, limits = c(0, .05)) +
+  # scale_size(range = c(0.1, 7),# breaks = c(10000000, 100000000, 1000000000),
+  #            labels = dollar) +
+  guides(size = guide_legend(order = 1)) +
+  labs(title = title_recent,
+       subtitle = subtitle_recent,
+       fill = "Agricultural \nDelinquency \nRate")
+p1
+ggsave(p1, filename = paste0(figures, "/ag_delinquencies_tot_recent.png"),
+       width = 10, height = 7)
+```
+
+
+
+```{r recent-tot-branches}
+title_recent <- paste0("Agricultural Performance since Q",
+                       str_sub(max(state_recent$year), -1),
+                          " ", str_sub(max(state_recent$year - 1), 1, 4))
+# subtitle_recent <- paste0("12-month period ending after Q",
+#                           str_sub(max(state_recent$year), -1),
+#                           " ",
+#                           str_sub(max(state_recent$year), 1, 4))
+subtitle_recent <- paste0("Average Total Loan Value of ", tot_value,
+                          " with Deliquency Rate of ", tot_delin)
+
+p1 <- ggplot(gg_states_r, aes(x = long, y = lat)) +
+  geom_polygon(aes(group = group, fill = drate_ag_tot), colour = "grey") +
+  geom_point(data = loans_elided@data,
+             aes(x, y, size = agloans + agloans_re),
+             color = "black", alpha = 0.5) +
+  delin_theme +
+  scale_fill_gradient(low = "white", high = "blue",
+                      labels = percent, oob = squish, limits = c(0, .05)) +
+  scale_size(range = c(0.1, 7), breaks = c(10000000, 100000000, 1000000000),
+             labels = dollar) +
+  guides(size = guide_legend(order = 1)) +
+  labs(title = title_recent,
+       subtitle = subtitle_recent,
+       fill = "Agricultural \nDelinquency \nRate",
+       size = "Total Value of \nAgricultural Loans")
+p1
+ggsave(p1, filename = paste0(figures, "/ag_delinquencies_tot_recent_branches.png"),
+       width = 10, height = 7)
+```
+
+```{r recent-prod}
+title_recent <- paste0("Agricultural Production Performance since Q",
+                       str_sub(max(state_recent$year), -1),
+                          " ", str_sub(max(state_recent$year - 1), 1, 4))
+# subtitle_recent <- paste0("12-month period ending after Q",
+#                           str_sub(max(state_recent$year), -1),
+#                           " ",
+#                           str_sub(max(state_recent$year), 1, 4))
+subtitle_recent <- paste0("Average Total Loan Value of ", prod_value,
+                          " with Deliquency Rate of ", prod_delin)
+
+
+p1 <- ggplot(gg_states_r, aes(x = long, y = lat)) +
+  geom_polygon(aes(group = group, fill = drate_ag_prod), colour = "grey") +
+  delin_theme +
+  scale_fill_gradient(low = "white", high = "blue",
+                      labels = percent, oob = squish, limits = c(0, .05)) +
+  labs(title = title_recent,
+       subtitle = subtitle_recent,
+       fill = "Agricultural \nDelinquency \nRate")
+p1
+ggsave(p1, filename = paste0(figures, "/ag_delinquencies_prod_recent.png"),
+       width = 10, height = 7)
+
+```
+
+```{r recent-prod-branches}
+title_recent <- paste0("Agricultural Production Performance since Q",
+                       str_sub(max(state_recent$year), -1),
+                          " ", str_sub(max(state_recent$year - 1), 1, 4))
+# subtitle_recent <- paste0("12-month period ending after Q",
+#                           str_sub(max(state_recent$year), -1),
+#                           " ",
+#                           str_sub(max(state_recent$year), 1, 4))
+subtitle_recent <- paste0("Average Total Loan Value of ", prod_value,
+                          " with Deliquency Rate of ", prod_delin)
+
+
+p1 <- ggplot(gg_states_r, aes(x = long, y = lat)) +
+  geom_polygon(aes(group = group, fill = drate_ag_prod), colour = "grey") +
+  geom_point(data = loans_elided@data,
+             aes(x, y, size = agloans),
+             color = "black", alpha = 0.5) +
+  delin_theme +
+  scale_fill_gradient(low = "white", high = "blue",
+                      labels = percent, oob = squish, limits = c(0, .05)) +
+    scale_size(range = c(0.1, 7), breaks = c(10000000, 100000000, 1000000000),
+             labels = dollar) +
+  guides(size = guide_legend(order = 1)) +
+  labs(title = title_recent,
+       subtitle = subtitle_recent,
+       fill = "Agricultural \nDelinquency \nRate",
+       size = "Total Value of \nAgricultural Loans")
+p1
+ggsave(p1, filename = paste0(figures, "/ag_delinquencies_prod_recent_branches.png"),
+       width = 10, height = 7)
+
+```
+
+
+```{r recent-re}
+title_recent <- paste0("Agricultural Real Estate Performance since Q",
+                       str_sub(max(state_recent$year), -1),
+                          " ", str_sub(max(state_recent$year - 1), 1, 4))
+# subtitle_recent <- paste0("12-month period ending after Q",
+#                           str_sub(max(state_recent$year), -1),
+#                           " ",
+#                           str_sub(max(state_recent$year), 1, 4))
+subtitle_recent <- paste0("Average Total Loan Value of ", re_value,
+                          " with Deliquency Rate of ", re_delin)
+
+
+p1 <- ggplot(gg_states_r, aes(x = long, y = lat)) +
+  geom_polygon(aes(group = group, fill = drate_ag_re), colour = "grey") +
+  delin_theme +
+  scale_fill_gradient(low = "white", high = "blue",
+                      labels = percent, oob = squish, limits = c(0, .05)) +
+  guides(size = guide_legend(order = 1)) +
+  labs(title = title_recent,
+       subtitle = subtitle_recent,
+       fill = "Agricultural \nDelinquency \nRate",
+       size = "Total Value of \nAgricultural Loans")
+p1
+ggsave(p1, filename = paste0(figures, "/ag_delinquencies_re_recent.png"),
+       width = 10, height = 7)
+
+```
+
+```{r recent-re-branches}
+title_recent <- paste0("Agricultural Real Estate Performance since Q",
+                       str_sub(max(state_recent$year), -1),
+                          " ", str_sub(max(state_recent$year - 1), 1, 4))
+# subtitle_recent <- paste0("12-month period ending after Q",
+#                           str_sub(max(state_recent$year), -1),
+#                           " ",
+#                           str_sub(max(state_recent$year), 1, 4))
+subtitle_recent <- paste0("Average Total Loan Value of ", re_value,
+                          " with Deliquency Rate of ", re_delin)
+
+
+p1 <- ggplot(gg_states_r, aes(x = long, y = lat)) +
+  geom_polygon(aes(group = group, fill = drate_ag_re), colour = "grey") +
+  geom_point(data = loans_elided@data,
+             aes(x, y, size = agloans_re),
+             color = "black", alpha = 0.5) +
+  delin_theme +
+  scale_fill_gradient(low = "white", high = "blue",
+                      labels = percent, oob = squish, limits = c(0, .05)) +
+  scale_size(range = c(0.1, 7),# breaks = c(10000000, 100000000, 1000000000),
+             labels = dollar) +
+  guides(size = guide_legend(order = 1)) +
+  labs(title = title_recent,
+       subtitle = subtitle_recent,
+       fill = "Agricultural \nDelinquency \nRate",
+       size = "Total Value of \nAgricultural Loans")
+p1
+ggsave(p1, filename = paste0(figures, "/ag_delinquencies_re_recent_branches.png"),
+       width = 10, height = 7)
+
+```
