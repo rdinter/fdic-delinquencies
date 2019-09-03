@@ -26,6 +26,19 @@ if (!file.exists(data_source)) dir.create(data_source)
 fdic_db <- dbConnect(SQLite(), "0-data/FDIC/fdic.sqlite")
 # unlink(paste0(local_dir, "fdic_sod.sqlite"))
 
+# Add in the county districts
+dist_hacks <- data.frame(fips = c(2010, 46102),
+                         county = c("", "OGLALA LAKOTA"),
+                         state = c("ALASKA", "SOUTH DAKOTA"),
+                         district = c("ALASKA", "SOUTH DAKOTA"),
+                         circuit = c("NINTH CIRCUIT", "EIGHTH CIRCUIT"))
+districts <- read_csv("0-data/offline/district_counties.csv") %>% 
+  rename_all(tolower) %>% 
+  mutate(fips = parse_number(fips)) %>% 
+  bind_rows(dist_hacks)
+
+dbWriteTable(fdic_db, "district_counties", districts, overwrite = T)
+
 # Make sure this is not selecting the Bouwman historical data
 fdic_files <- dir(data_source, full.names = T, pattern = ".zip")
 fdic_files <- fdic_files[grepl("ALL", fdic_files)]
@@ -58,10 +71,27 @@ sod <- bind_rows(sod_map)
 # ---- bouwman ------------------------------------------------------------
 
 # Bouwman historical data
-branch_bouwman <- read_rds("0-data/FDIC/SOD/branch_bouwman.rds")
+branch_bouwman      <- read_rds("0-data/FDIC/SOD/branch_bouwman.rds")
 institution_bouwman <- read_rds("0-data/FDIC/SOD/institution_bouwman.rds")
 
-dbWriteTable(fdic_db, "SOD_branch_bouwman", branch_bouwman, overwrite = T)
+# Add on lat and longs
+state_match <- toupper(state.name)
+names(state_match) <- state.abb
+city_lats <- zipcode %>% 
+  filter(state %in% state.abb) %>% 
+  mutate(citybr = paste0(toupper(city), ", ",
+                         state_match[state])) %>% 
+  group_by(citybr) %>% 
+  summarise(lat = mean(latitude, na.rm = T),
+            long = mean(longitude, na.rm = T))
+
+lat_bouwman <- branch_bouwman %>%
+  left_join(city_lats)
+
+# County lat/longs?
+
+
+dbWriteTable(fdic_db, "SOD_branch_bouwman", lat_bouwman, overwrite = T)
 dbWriteTable(fdic_db, "SOD_institution_bouwman", institution_bouwman,
              overwrite = T)
 

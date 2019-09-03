@@ -17,12 +17,13 @@ For most users, the raw data are of the most importance and they are referenced 
 A few packages needs to be installed to maintain this repository that are on CRAN and can be installed with the `install.packages()` command:
 
 ```R
-install.packages(c("DBI", "ggmap", "haven", "httr", "RSQLite", "rvest", "tidyverse", "zipcode"))
+install.packages(c("DBI", "lubridate", "ggmap", "haven", "httr", "RSQLite", "rvest", "tidyverse", "zipcode"))
 ```
 
 A quick reasoning for each package:
 
 - [DBI](https://db.rstudio.com/dbi/) - database interface with R
+- lubridate - helpful for time series
 - ggmap - mapping of locations
 - haven - read in SAS
 - httr - web scraping of the FDIC and Chicago Fed

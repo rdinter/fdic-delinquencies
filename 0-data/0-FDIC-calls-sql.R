@@ -3,6 +3,7 @@
 # https://www5.fdic.gov/sdi/download_large_list_outside.asp
 
 library("DBI")
+library("lubridate")
 library("RSQLite")
 library("tidyverse")
 
@@ -82,7 +83,11 @@ j8    <- demo_table %>%
   mutate(fed_rssd = case_when(cert == 17798 ~ 782306,
                               cert == 34966 ~ 2849463,
                               T ~ fed_rssd),
-         rssdhcr = if_else(rssdhcr == 0, NA_real_, rssdhcr)) # %>% 
+         rssdhcr = if_else(rssdhcr == 0, NA_real_, rssdhcr),
+         call_date = as.Date(repdte, "%m/%d/%Y"),
+         call_quarter = quarter(call_date),
+         call_month = month(call_date, label = TRUE),
+         call_year = year(call_date)) # %>% 
   # mutate_at(vars(repdte, rundate, estymd, insdate, effdate),
   #           function(x) as.Date(x, "%m/%d/%Y"))
   
@@ -90,6 +95,8 @@ j8    <- demo_table %>%
 dbWriteTable(fdic_db, "BULK_demographics", j8, overwrite = TRUE)
 
 # ---- combine tables -----------------------------------------------------
+
+# Warning: dollar values are in $1,000s
 
 demo <- by(files, files$tbls, function(x){
   j7 <- pmap(x, function(file_zip, file_csv, tables, tbls){
