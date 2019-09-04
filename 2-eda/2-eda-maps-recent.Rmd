@@ -28,12 +28,14 @@ if (!file.exists(local_dir)) dir.create(local_dir, recursive = T)
 if (!file.exists(figures)) dir.create(figures, recursive = T)
 
 county_recent <- read_rds("../1-tidy/county/county_branches_recent.rds") %>% 
-  select(year, fips = fips_br, agloans = lnag, agloans_re = lnreag,
+  select(year, fips = fips_br, cntynamb, stalpbr,
+         agloans = lnag, agloans_re = lnreag,
          agloans_d, agloans_d_alt, agloans_re_d, agloans_re_d_alt) %>% 
   # Let's not worry about alternate drates yet
   mutate(drate_ag_tot = (agloans_d + agloans_re_d) / (agloans + agloans_re),
          drate_ag_prod = agloans_d / agloans,
-         drate_ag_re = agloans_re_d / agloans_re)
+         drate_ag_re = agloans_re_d / agloans_re,
+         county = str_to_lower(cntynamb))
 
 # Total values
 tot_value <- dollar(sum(county_recent$agloans, na.rm = T) + sum(county_recent$agloans_re, na.rm = T), accuracy = 1000000)
@@ -120,6 +122,7 @@ p1 <- ggplot(gg_states_r, aes(x = long, y = lat)) +
   guides(size = guide_legend(order = 1)) +
   labs(title = title_recent,
        subtitle = subtitle_recent,
+       caption = paste0("FDIC Call Reports, Robert Dinterman. ", Sys.Date()),
        fill = "Agricultural \nDelinquency \nRate")
 p1
 ggsave(p1, filename = paste0(figures, "/ag_delinquencies_tot_recent.png"),
@@ -152,6 +155,7 @@ p1 <- ggplot(gg_states_r, aes(x = long, y = lat)) +
   guides(size = guide_legend(order = 1)) +
   labs(title = title_recent,
        subtitle = subtitle_recent,
+       caption = paste0("FDIC Call Reports, Robert Dinterman. ", Sys.Date()),
        fill = "Agricultural \nDelinquency \nRate",
        size = "Total Value of \nAgricultural Loans")
 p1
@@ -178,6 +182,7 @@ p1 <- ggplot(gg_states_r, aes(x = long, y = lat)) +
                       labels = percent, oob = squish, limits = c(0, .05)) +
   labs(title = title_recent,
        subtitle = subtitle_recent,
+       caption = paste0("FDIC Call Reports, Robert Dinterman. ", Sys.Date()),
        fill = "Agricultural \nDelinquency \nRate")
 p1
 ggsave(p1, filename = paste0(figures, "/ag_delinquencies_prod_recent.png"),
@@ -210,6 +215,7 @@ p1 <- ggplot(gg_states_r, aes(x = long, y = lat)) +
   guides(size = guide_legend(order = 1)) +
   labs(title = title_recent,
        subtitle = subtitle_recent,
+       caption = paste0("FDIC Call Reports, Robert Dinterman. ", Sys.Date()),
        fill = "Agricultural \nDelinquency \nRate",
        size = "Total Value of \nAgricultural Loans")
 p1
@@ -239,6 +245,7 @@ p1 <- ggplot(gg_states_r, aes(x = long, y = lat)) +
   guides(size = guide_legend(order = 1)) +
   labs(title = title_recent,
        subtitle = subtitle_recent,
+       caption = paste0("FDIC Call Reports, Robert Dinterman. ", Sys.Date()),
        fill = "Agricultural \nDelinquency \nRate",
        size = "Total Value of \nAgricultural Loans")
 p1
@@ -272,6 +279,7 @@ p1 <- ggplot(gg_states_r, aes(x = long, y = lat)) +
   guides(size = guide_legend(order = 1)) +
   labs(title = title_recent,
        subtitle = subtitle_recent,
+       caption = paste0("FDIC Call Reports, Robert Dinterman. ", Sys.Date()),
        fill = "Agricultural \nDelinquency \nRate",
        size = "Total Value of \nAgricultural Loans")
 p1
@@ -279,3 +287,222 @@ ggsave(p1, filename = paste0(figures, "/ag_delinquencies_re_recent_branches.png"
        width = 10, height = 7)
 
 ```
+
+
+
+# Ohio
+
+```{r ohio-setup}
+# Ohio values
+tot_value_oh <- dollar(sum(county_recent$agloans[county_recent$stalpbr == "OH"], na.rm = T) + sum(county_recent$agloans_re[county_recent$stalpbr == "OH"], na.rm = T), accuracy = 1000000)
+tot_delin_oh <- percent((sum(county_recent$agloans_d[county_recent$stalpbr == "OH"], na.rm = T) + sum(county_recent$agloans_re_d[county_recent$stalpbr == "OH"], na.rm = T)) / (sum(county_recent$agloans[county_recent$stalpbr == "OH"], na.rm = T) + sum(county_recent$agloans_re[county_recent$stalpbr == "OH"], na.rm = T)), accuracy = .01)
+prod_value_oh <- dollar(sum(county_recent$agloans[county_recent$stalpbr == "OH"], na.rm = T), accuracy = 1000000)
+prod_delin_oh <- percent((sum(county_recent$agloans_d[county_recent$stalpbr == "OH"], na.rm = T)) / (sum(county_recent$agloans[county_recent$stalpbr == "OH"], na.rm = T)), accuracy = .01)
+re_value_oh <- dollar(sum(county_recent$agloans_re[county_recent$stalpbr == "OH"], na.rm = T), accuracy = 1000000)
+re_delin_oh <- percent((sum(county_recent$agloans_re_d[county_recent$stalpbr == "OH"], na.rm = T)) / (sum(county_recent$agloans_re[county_recent$stalpbr == "OH"], na.rm = T)), accuracy = .01)
+
+ohio_map <- map_data("county", "Ohio") %>%
+  rename(county = subregion) %>% 
+  left_join(county_recent)
+
+```
+
+## Recent Ohio Values
+
+```{r recent-tot-oh}
+title_recent <- paste0("Agricultural Performance since Q",
+                       str_sub(max(state_recent$year), -1),
+                          " ", str_sub(max(state_recent$year - 1), 1, 4))
+# subtitle_recent <- paste0("12-month period ending after Q",
+#                           str_sub(max(state_recent$year), -1),
+#                           " ",
+#                           str_sub(max(state_recent$year), 1, 4))
+subtitle_recent <- paste0("Average Total Loan Value of ", tot_value_oh,
+                          " with Deliquency Rate of ", tot_delin_oh)
+
+p1 <- ggplot(ohio_map, aes(x = long, y = lat)) +
+  geom_polygon(aes(group = group, fill = drate_ag_tot), colour = "grey") +
+  # geom_point(data = filter(branches_recent@data, stalpbr == "OH"),
+  #            aes(size = agloans + agloans_re),
+  #            color = "black", alpha = 0.5) +
+  delin_theme +
+  scale_fill_gradient(low = "white", high = "blue",
+                      labels = percent, oob = squish, limits = c(0, .05)) +
+  # scale_size(range = c(0.1, 7),# breaks = c(10000000, 100000000, 1000000000),
+  #            labels = dollar) +
+  guides(size = guide_legend(order = 1)) +
+  labs(title = title_recent,
+       subtitle = subtitle_recent,
+       caption = paste0("FDIC Call Reports, Robert Dinterman. ", Sys.Date()),
+       fill = "Agricultural \nDelinquency \nRate")
+p1
+ggsave(p1, filename = paste0(figures, "/ag_delinquencies_tot_recent_oh.png"),
+       width = 10, height = 7)
+```
+
+
+```{r recent-tot-branches-oh}
+title_recent <- paste0("Agricultural Performance since Q",
+                       str_sub(max(state_recent$year), -1),
+                          " ", str_sub(max(state_recent$year - 1), 1, 4))
+# subtitle_recent <- paste0("12-month period ending after Q",
+#                           str_sub(max(state_recent$year), -1),
+#                           " ",
+#                           str_sub(max(state_recent$year), 1, 4))
+subtitle_recent <- paste0("Average Total Loan Value of ", tot_value_oh,
+                          " with Deliquency Rate of ", tot_delin_oh)
+
+p1 <- ggplot(ohio_map, aes(x = long, y = lat)) +
+  geom_polygon(aes(group = group, fill = drate_ag_tot), colour = "grey") +
+  geom_point(data = filter(branches_recent@data, stalpbr == "OH"),
+             aes(size = agloans + agloans_re),
+             color = "black", alpha = 0.5) +
+  delin_theme +
+  scale_fill_gradient(low = "white", high = "blue",
+                      labels = percent, oob = squish, limits = c(0, .05)) +
+  scale_size(range = c(0.1, 7), breaks = c(10000000, 100000000, 1000000000),
+             labels = dollar) +
+  guides(size = guide_legend(order = 1)) +
+  labs(title = title_recent,
+       subtitle = subtitle_recent,
+       caption = paste0("FDIC Call Reports, Robert Dinterman. ", Sys.Date()),
+       fill = "Agricultural \nDelinquency \nRate",
+       size = "Total Value of \nAgricultural Loans")
+p1
+ggsave(p1, filename = paste0(figures, "/ag_delinquencies_tot_recent_branches_oh.png"),
+       width = 10, height = 7)
+```
+
+```{r recent-prod-oh}
+title_recent <- paste0("Agricultural Production Performance since Q",
+                       str_sub(max(state_recent$year), -1),
+                          " ", str_sub(max(state_recent$year - 1), 1, 4))
+# subtitle_recent <- paste0("12-month period ending after Q",
+#                           str_sub(max(state_recent$year), -1),
+#                           " ",
+#                           str_sub(max(state_recent$year), 1, 4))
+subtitle_recent <- paste0("Average Total Loan Value of ", prod_value_oh,
+                          " with Deliquency Rate of ", prod_delin_oh)
+
+
+p1 <- ggplot(ohio_map, aes(x = long, y = lat)) +
+  geom_polygon(aes(group = group, fill = drate_ag_prod), colour = "grey") +
+  delin_theme +
+  scale_fill_gradient(low = "white", high = "blue",
+                      labels = percent, oob = squish, limits = c(0, .05)) +
+  labs(title = title_recent,
+       subtitle = subtitle_recent,
+       caption = paste0("FDIC Call Reports, Robert Dinterman. ", Sys.Date()),
+       fill = "Agricultural \nDelinquency \nRate")
+p1
+ggsave(p1, filename = paste0(figures, "/ag_delinquencies_prod_recent_oh.png"),
+       width = 10, height = 7)
+
+```
+
+```{r recent-prod-branches-oh}
+title_recent <- paste0("Agricultural Production Performance since Q",
+                       str_sub(max(state_recent$year), -1),
+                          " ", str_sub(max(state_recent$year - 1), 1, 4))
+# subtitle_recent <- paste0("12-month period ending after Q",
+#                           str_sub(max(state_recent$year), -1),
+#                           " ",
+#                           str_sub(max(state_recent$year), 1, 4))
+subtitle_recent <- paste0("Average Total Loan Value of ", prod_value_oh,
+                          " with Deliquency Rate of ", prod_delin_oh)
+
+
+p1 <- ggplot(ohio_map, aes(x = long, y = lat)) +
+  geom_polygon(aes(group = group, fill = drate_ag_prod), colour = "grey") +
+  geom_point(data = filter(branches_recent@data, stalpbr == "OH"),
+             aes(size = agloans + agloans_re),
+             color = "black", alpha = 0.5) +
+  delin_theme +
+  scale_fill_gradient(low = "white", high = "blue",
+                      labels = percent, oob = squish, limits = c(0, .05)) +
+    scale_size(range = c(0.1, 7), breaks = c(10000000, 100000000, 1000000000),
+             labels = dollar) +
+  guides(size = guide_legend(order = 1)) +
+  labs(title = title_recent,
+       subtitle = subtitle_recent,
+       caption = paste0("FDIC Call Reports, Robert Dinterman. ", Sys.Date()),
+       fill = "Agricultural \nDelinquency \nRate",
+       size = "Total Value of \nAgricultural Loans")
+p1
+ggsave(p1, filename = paste0(figures, "/ag_delinquencies_prod_recent_branches_oh.png"),
+       width = 10, height = 7)
+
+```
+
+
+```{r recent-re-oh}
+title_recent <- paste0("Agricultural Real Estate Performance since Q",
+                       str_sub(max(state_recent$year), -1),
+                          " ", str_sub(max(state_recent$year - 1), 1, 4))
+# subtitle_recent <- paste0("12-month period ending after Q",
+#                           str_sub(max(state_recent$year), -1),
+#                           " ",
+#                           str_sub(max(state_recent$year), 1, 4))
+subtitle_recent <- paste0("Average Total Loan Value of ", re_value_oh,
+                          " with Deliquency Rate of ", re_delin_oh)
+
+
+p1 <- ggplot(ohio_map, aes(x = long, y = lat)) +
+  geom_polygon(aes(group = group, fill = drate_ag_re), colour = "grey") +
+  delin_theme +
+  scale_fill_gradient(low = "white", high = "blue",
+                      labels = percent, oob = squish, limits = c(0, .05)) +
+  guides(size = guide_legend(order = 1)) +
+  labs(title = title_recent,
+       subtitle = subtitle_recent,
+       caption = paste0("FDIC Call Reports, Robert Dinterman. ", Sys.Date()),
+       fill = "Agricultural \nDelinquency \nRate",
+       size = "Total Value of \nAgricultural Loans")
+p1
+ggsave(p1, filename = paste0(figures, "/ag_delinquencies_re_recent_oh.png"),
+       width = 10, height = 7)
+
+```
+
+```{r recent-re-branches-oh}
+title_recent <- paste0("Agricultural Real Estate Performance since Q",
+                       str_sub(max(state_recent$year), -1),
+                          " ", str_sub(max(state_recent$year - 1), 1, 4))
+# subtitle_recent <- paste0("12-month period ending after Q",
+#                           str_sub(max(state_recent$year), -1),
+#                           " ",
+#                           str_sub(max(state_recent$year), 1, 4))
+subtitle_recent <- paste0("Average Total Loan Value of ", re_value_oh,
+                          " with Deliquency Rate of ", re_delin_oh)
+
+
+p1 <- ggplot(ohio_map, aes(x = long, y = lat)) +
+  geom_polygon(aes(group = group, fill = drate_ag_re), colour = "grey") +
+  geom_point(data = filter(branches_recent@data, stalpbr == "OH"),
+             aes(size = agloans + agloans_re),
+             color = "black", alpha = 0.5) +
+  delin_theme +
+  scale_fill_gradient(low = "white", high = "blue",
+                      labels = percent, oob = squish, limits = c(0, .05)) +
+  scale_size(range = c(0.1, 7),# breaks = c(10000000, 100000000, 1000000000),
+             labels = dollar) +
+  guides(size = guide_legend(order = 1)) +
+  labs(title = title_recent,
+       subtitle = subtitle_recent,
+       caption = paste0("FDIC Call Reports, Robert Dinterman. ", Sys.Date()),
+       fill = "Agricultural \nDelinquency \nRate",
+       size = "Total Value of \nAgricultural Loans")
+p1
+ggsave(p1, filename = paste0(figures, "/ag_delinquencies_re_recent_branches_oh.png"),
+       width = 10, height = 7)
+
+```
+
+
+
+
+
+
+
+
+

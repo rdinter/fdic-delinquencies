@@ -49,7 +49,7 @@ districts_br <- tbl(fdic, "district_counties") %>%
 
 branch      <- tbl(fdic, "SOD_branch") %>% 
   select(year, rssdid, cert, depsumbr, brnum, uninumbr, addresbr, namebr,
-         stalpbr, citybr, fips_br = stcntybr, zip_br = zipbr,
+         stalpbr, citybr, fips_br = stcntybr, zip_br = zipbr, cntynamb,
          lat, long) %>% 
   left_join(institution) %>% 
   left_join(districts_br)
@@ -138,7 +138,7 @@ j6_fips <- branch %>%
   mutate_at(vars(asset, lnlsgr:agloans_re_d_alt,
                  lnlsgr_year:agloans_re_d_alt_year), list(~.*adj)) %>% 
   ungroup() %>% 
-  group_by(year, fips_br) %>% 
+  group_by(year, fips_br, cntynamb, stalpbr) %>% 
   # Caution: this is where the $1,000s are adjusted
   summarise_at(vars(asset, deposits, lnlsgr:agloans_re_d_alt,
                     lnlsgr_year:agloans_re_d_alt_year),
@@ -153,7 +153,7 @@ fips_numbs <- branch %>%
   mutate(deposits = pmax(depsumbr, depsum),
          adj = if_else(depsumbr == deposits, 1, depsumbr / deposits)) %>%
   ungroup() %>%
-  group_by(year, fips_br) %>% 
+  group_by(year, fips_br, cntynamb, stalpbr) %>% 
   # Caution: this is where the $1,000s are adjusted
   summarise(total_branches = n(),
             total_ag_branches = sum(ag_bank, na.rm = T),
@@ -166,8 +166,8 @@ j6 <- left_join(j6_fips, fips_numbs)
 
 write_rds(j6_fips, paste0(local_dir, "/county_branches.rds"))
 j6_fips %>% 
-  select(year, fips_br, loans = lnlsgr, re_loans = lnre, agloans = lnag,
-         agloans_re = lnreag,
+  select(year, fips_br, cntynamb,
+         loans = lnlsgr, re_loans = lnre, agloans = lnag, agloans_re = lnreag,
          loans_year = lnlsgr_year, re_loans_year = lnre_year,
          agloans_year = lnag_year, agloans_re_year = lnreag_year,
          contains("loan"), contains("branch")) %>% 
@@ -184,7 +184,7 @@ recent_county <- branch %>%
   mutate_at(vars(asset, lnlsgr:agloans_re_d_alt),
             list(~.*adj)) %>% 
   ungroup() %>% 
-  group_by(year, fips_br) %>% 
+  group_by(year, fips_br, cntynamb, stalpbr) %>% 
   # Caution: this is where the $1,000s are adjusted
   summarise_at(vars(asset, lnlsgr:agloans_re_d_alt),
                list(~sum(.*1000, na.rm = T))) %>% 
@@ -197,7 +197,7 @@ recent_num <- branch %>%
   mutate(deposits = pmax(depsumbr, depsum),
          adj = if_else(depsumbr == deposits, 1, depsumbr / deposits)) %>%
   ungroup() %>%
-  group_by(year, fips_br) %>% 
+  group_by(year, fips_br, cntynamb, stalpbr) %>% 
   # Caution: this is where the $1,000s are adjusted
   summarise(total_branches = n(),
             total_ag_branches = sum(ag_bank, na.rm = T),
@@ -210,9 +210,11 @@ recent <- recent_county %>%
   ungroup() %>% 
   filter(!is.na(year))
 
+# Add in the state for subsetability.
+
 write_rds(recent, paste0(local_dir, "/county_branches_recent.rds"))
 recent %>% 
-  select(year, call_date, fips_br,
+  select(year, call_date = year, fips_br, cntynamb, stalpbr,
          loans = lnlsgr, re_loans = lnre, agloans = lnag,
          agloans_re = lnreag, contains("loan"), contains("branch")) %>% 
   write_csv(paste0(local_dir, "/county_branches_recent.csv"))
@@ -233,7 +235,7 @@ j6_district <- branch %>%
   mutate_at(vars(asset, lnlsgr:agloans_re_d_alt,
                  lnlsgr_year:agloans_re_d_alt_year), list(~.*adj)) %>% 
   ungroup() %>% 
-  group_by(year, district_br) %>% 
+  group_by(year, district_br, stalpbr) %>% 
   # Caution: this is where the $1,000s are adjusted
   summarise_at(vars(asset, deposits, lnlsgr:agloans_re_d_alt,
                     lnlsgr_year:agloans_re_d_alt_year),
@@ -248,7 +250,7 @@ district_numbs <- branch %>%
   mutate(deposits = pmax(depsumbr, depsum),
          adj = if_else(depsumbr == deposits, 1, depsumbr / deposits)) %>%
   ungroup() %>%
-  group_by(year, district_br) %>% 
+  group_by(year, district_br, stalpbr) %>% 
   # Caution: this is where the $1,000s are adjusted
   summarise(total_branches = n(),
             total_ag_branches = sum(ag_bank, na.rm = T),
@@ -261,7 +263,8 @@ j7 <- left_join(j6_district, district_numbs)
 
 write_rds(j7, paste0(local_dir, "/district_branches.rds"))
 j7 %>% 
-  select(year, district_br, loans = lnlsgr, re_loans = lnre, agloans = lnag,
+  select(year, district_br, stalpbr,
+         loans = lnlsgr, re_loans = lnre, agloans = lnag,
          agloans_re = lnreag,
          loans_year = lnlsgr_year, re_loans_year = lnre_year,
          agloans_year = lnag_year, agloans_re_year = lnreag_year,
