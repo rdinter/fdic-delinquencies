@@ -212,7 +212,7 @@ recent <- recent_state %>%
 
 write_rds(recent, paste0(local_dir, "/state_branches_recent.rds"))
 recent %>% 
-  select(year, call_date, stalpbr,
+  select(year, stalpbr,
          loans = lnlsgr, re_loans = lnre, agloans = lnag,
          agloans_re = lnreag, contains("loan"), contains("branch")) %>% 
   write_csv(paste0(local_dir, "/state_branches_recent.csv"))
