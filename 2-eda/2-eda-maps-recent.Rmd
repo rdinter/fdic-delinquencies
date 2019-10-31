@@ -99,9 +99,11 @@ opts_chunk$set(cache = FALSE, echo = FALSE, warning = FALSE,
 # Most recent data
 
 ```{r recent-tot}
-title_recent <- paste0("Agricultural Performance since Q",
-                       str_sub(max(state_recent$year), -1),
-                          " ", str_sub(max(state_recent$year - 1), 1, 4))
+title_recent <- paste0("Agricultural Performance Q",
+                       (as.numeric(str_sub(max(state_recent$year), -1)) + 1) %% 4,
+                          " ", str_sub(max(state_recent$year - 1), 1, 4),
+                       " to Q", str_sub(max(state_recent$year), -1),
+                          " ", str_sub(max(state_recent$year), 1, 4))
 # subtitle_recent <- paste0("12-month period ending after Q",
 #                           str_sub(max(state_recent$year), -1),
 #                           " ",
@@ -132,9 +134,11 @@ ggsave(p1, filename = paste0(figures, "/ag_delinquencies_tot_recent.png"),
 
 
 ```{r recent-tot-branches}
-title_recent <- paste0("Agricultural Performance since Q",
-                       str_sub(max(state_recent$year), -1),
-                          " ", str_sub(max(state_recent$year - 1), 1, 4))
+title_recent <- paste0("Agricultural Performance Q",
+                       (as.numeric(str_sub(max(state_recent$year), -1)) + 1) %% 4,
+                          " ", str_sub(max(state_recent$year - 1), 1, 4),
+                       " to Q", str_sub(max(state_recent$year), -1),
+                          " ", str_sub(max(state_recent$year), 1, 4))
 # subtitle_recent <- paste0("12-month period ending after Q",
 #                           str_sub(max(state_recent$year), -1),
 #                           " ",
@@ -164,9 +168,11 @@ ggsave(p1, filename = paste0(figures, "/ag_delinquencies_tot_recent_branches.png
 ```
 
 ```{r recent-prod}
-title_recent <- paste0("Agricultural Production Performance since Q",
-                       str_sub(max(state_recent$year), -1),
-                          " ", str_sub(max(state_recent$year - 1), 1, 4))
+title_recent <- paste0("Agricultural Production Performance Q",
+                       (as.numeric(str_sub(max(state_recent$year), -1)) + 1) %% 4,
+                          " ", str_sub(max(state_recent$year - 1), 1, 4),
+                       " to Q", str_sub(max(state_recent$year), -1),
+                          " ", str_sub(max(state_recent$year), 1, 4))
 # subtitle_recent <- paste0("12-month period ending after Q",
 #                           str_sub(max(state_recent$year), -1),
 #                           " ",
@@ -191,9 +197,11 @@ ggsave(p1, filename = paste0(figures, "/ag_delinquencies_prod_recent.png"),
 ```
 
 ```{r recent-prod-branches}
-title_recent <- paste0("Agricultural Production Performance since Q",
-                       str_sub(max(state_recent$year), -1),
-                          " ", str_sub(max(state_recent$year - 1), 1, 4))
+title_recent <- paste0("Agricultural Production Performance Q",
+                       (as.numeric(str_sub(max(state_recent$year), -1)) + 1) %% 4,
+                          " ", str_sub(max(state_recent$year - 1), 1, 4),
+                       " to Q", str_sub(max(state_recent$year), -1),
+                          " ", str_sub(max(state_recent$year), 1, 4))
 # subtitle_recent <- paste0("12-month period ending after Q",
 #                           str_sub(max(state_recent$year), -1),
 #                           " ",
@@ -226,9 +234,11 @@ ggsave(p1, filename = paste0(figures, "/ag_delinquencies_prod_recent_branches.pn
 
 
 ```{r recent-re}
-title_recent <- paste0("Agricultural Real Estate Performance since Q",
-                       str_sub(max(state_recent$year), -1),
-                          " ", str_sub(max(state_recent$year - 1), 1, 4))
+title_recent <- paste0("Agricultural Real Estate Performance Q",
+                       (as.numeric(str_sub(max(state_recent$year), -1)) + 1) %% 4,
+                          " ", str_sub(max(state_recent$year - 1), 1, 4),
+                       " to Q", str_sub(max(state_recent$year), -1),
+                          " ", str_sub(max(state_recent$year), 1, 4))
 # subtitle_recent <- paste0("12-month period ending after Q",
 #                           str_sub(max(state_recent$year), -1),
 #                           " ",
@@ -255,9 +265,11 @@ ggsave(p1, filename = paste0(figures, "/ag_delinquencies_re_recent.png"),
 ```
 
 ```{r recent-re-branches}
-title_recent <- paste0("Agricultural Real Estate Performance since Q",
-                       str_sub(max(state_recent$year), -1),
-                          " ", str_sub(max(state_recent$year - 1), 1, 4))
+title_recent <- paste0("Agricultural Real Estate Performance Q",
+                       (as.numeric(str_sub(max(state_recent$year), -1)) + 1) %% 4,
+                          " ", str_sub(max(state_recent$year - 1), 1, 4),
+                       " to Q", str_sub(max(state_recent$year), -1),
+                          " ", str_sub(max(state_recent$year), 1, 4))
 # subtitle_recent <- paste0("12-month period ending after Q",
 #                           str_sub(max(state_recent$year), -1),
 #                           " ",
@@ -310,9 +322,11 @@ ohio_map <- map_data("county", "Ohio") %>%
 ## Recent Ohio Values
 
 ```{r recent-tot-oh}
-title_recent <- paste0("Agricultural Performance since Q",
-                       str_sub(max(state_recent$year), -1),
-                          " ", str_sub(max(state_recent$year - 1), 1, 4))
+title_recent <- paste0("Agricultural Performance Q",
+                       (as.numeric(str_sub(max(state_recent$year), -1)) + 1) %% 4,
+                          " ", str_sub(max(state_recent$year - 1), 1, 4),
+                       " to Q", str_sub(max(state_recent$year), -1),
+                          " ", str_sub(max(state_recent$year), 1, 4))
 # subtitle_recent <- paste0("12-month period ending after Q",
 #                           str_sub(max(state_recent$year), -1),
 #                           " ",
@@ -342,9 +356,11 @@ ggsave(p1, filename = paste0(figures, "/ag_delinquencies_tot_recent_oh.png"),
 
 
 ```{r recent-tot-branches-oh}
-title_recent <- paste0("Agricultural Performance since Q",
-                       str_sub(max(state_recent$year), -1),
-                          " ", str_sub(max(state_recent$year - 1), 1, 4))
+title_recent <- paste0("Agricultural Performance Q",
+                       (as.numeric(str_sub(max(state_recent$year), -1)) + 1) %% 4,
+                          " ", str_sub(max(state_recent$year - 1), 1, 4),
+                       " to Q", str_sub(max(state_recent$year), -1),
+                          " ", str_sub(max(state_recent$year), 1, 4))
 # subtitle_recent <- paste0("12-month period ending after Q",
 #                           str_sub(max(state_recent$year), -1),
 #                           " ",
@@ -374,9 +390,11 @@ ggsave(p1, filename = paste0(figures, "/ag_delinquencies_tot_recent_branches_oh.
 ```
 
 ```{r recent-prod-oh}
-title_recent <- paste0("Agricultural Production Performance since Q",
-                       str_sub(max(state_recent$year), -1),
-                          " ", str_sub(max(state_recent$year - 1), 1, 4))
+title_recent <- paste0("Agricultural Production Performance Q",
+                       (as.numeric(str_sub(max(state_recent$year), -1)) + 1) %% 4,
+                          " ", str_sub(max(state_recent$year - 1), 1, 4),
+                       " to Q", str_sub(max(state_recent$year), -1),
+                          " ", str_sub(max(state_recent$year), 1, 4))
 # subtitle_recent <- paste0("12-month period ending after Q",
 #                           str_sub(max(state_recent$year), -1),
 #                           " ",
@@ -401,9 +419,11 @@ ggsave(p1, filename = paste0(figures, "/ag_delinquencies_prod_recent_oh.png"),
 ```
 
 ```{r recent-prod-branches-oh}
-title_recent <- paste0("Agricultural Production Performance since Q",
-                       str_sub(max(state_recent$year), -1),
-                          " ", str_sub(max(state_recent$year - 1), 1, 4))
+title_recent <- paste0("Agricultural Production Performance Q",
+                       (as.numeric(str_sub(max(state_recent$year), -1)) + 1) %% 4,
+                          " ", str_sub(max(state_recent$year - 1), 1, 4),
+                       " to Q", str_sub(max(state_recent$year), -1),
+                          " ", str_sub(max(state_recent$year), 1, 4))
 # subtitle_recent <- paste0("12-month period ending after Q",
 #                           str_sub(max(state_recent$year), -1),
 #                           " ",
@@ -436,9 +456,11 @@ ggsave(p1, filename = paste0(figures, "/ag_delinquencies_prod_recent_branches_oh
 
 
 ```{r recent-re-oh}
-title_recent <- paste0("Agricultural Real Estate Performance since Q",
-                       str_sub(max(state_recent$year), -1),
-                          " ", str_sub(max(state_recent$year - 1), 1, 4))
+title_recent <- paste0("Agricultural Real Estate Performance Q",
+                       (as.numeric(str_sub(max(state_recent$year), -1)) + 1) %% 4,
+                          " ", str_sub(max(state_recent$year - 1), 1, 4),
+                       " to Q", str_sub(max(state_recent$year), -1),
+                          " ", str_sub(max(state_recent$year), 1, 4))
 # subtitle_recent <- paste0("12-month period ending after Q",
 #                           str_sub(max(state_recent$year), -1),
 #                           " ",
@@ -465,9 +487,11 @@ ggsave(p1, filename = paste0(figures, "/ag_delinquencies_re_recent_oh.png"),
 ```
 
 ```{r recent-re-branches-oh}
-title_recent <- paste0("Agricultural Real Estate Performance since Q",
-                       str_sub(max(state_recent$year), -1),
-                          " ", str_sub(max(state_recent$year - 1), 1, 4))
+title_recent <- paste0("Agricultural Real Estate Performance Q",
+                       (as.numeric(str_sub(max(state_recent$year), -1)) + 1) %% 4,
+                          " ", str_sub(max(state_recent$year - 1), 1, 4),
+                       " to Q", str_sub(max(state_recent$year), -1),
+                          " ", str_sub(max(state_recent$year), 1, 4))
 # subtitle_recent <- paste0("12-month period ending after Q",
 #                           str_sub(max(state_recent$year), -1),
 #                           " ",
