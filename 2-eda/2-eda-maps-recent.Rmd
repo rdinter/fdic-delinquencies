@@ -92,7 +92,7 @@ delin_theme <- theme(panel.background = element_blank(),  # remove background
 ```
 
 ```{r global_options, include=FALSE}
-opts_chunk$set(cache = TRUE, echo = FALSE, warning = FALSE,
+opts_chunk$set(cache = FALSE, echo = FALSE, warning = FALSE,
                message = FALSE, out.height = "100%", out.width = "100%")
 ```
 
@@ -106,8 +106,8 @@ title_recent <- paste0("Agricultural Performance since Q",
 #                           str_sub(max(state_recent$year), -1),
 #                           " ",
 #                           str_sub(max(state_recent$year), 1, 4))
-subtitle_recent <- paste0("Average Total Loan Value of ", tot_value,
-                          " with Deliquency Rate of ", tot_delin)
+subtitle_recent <- paste0("Avg Total Ag Loan Value of ", tot_value,
+                          "\nDeliquency Rate of ", tot_delin)
 
 p1 <- ggplot(gg_states_r, aes(x = long, y = lat)) +
   geom_polygon(aes(group = group, fill = drate_ag_tot), colour = "grey") +
@@ -139,8 +139,8 @@ title_recent <- paste0("Agricultural Performance since Q",
 #                           str_sub(max(state_recent$year), -1),
 #                           " ",
 #                           str_sub(max(state_recent$year), 1, 4))
-subtitle_recent <- paste0("Average Total Loan Value of ", tot_value,
-                          " with Deliquency Rate of ", tot_delin)
+subtitle_recent <- paste0("Avg Total Ag Loan Value of ", tot_value,
+                          "\nDeliquency Rate of ", tot_delin)
 
 p1 <- ggplot(gg_states_r, aes(x = long, y = lat)) +
   geom_polygon(aes(group = group, fill = drate_ag_tot), colour = "grey") +
@@ -171,8 +171,8 @@ title_recent <- paste0("Agricultural Production Performance since Q",
 #                           str_sub(max(state_recent$year), -1),
 #                           " ",
 #                           str_sub(max(state_recent$year), 1, 4))
-subtitle_recent <- paste0("Average Total Loan Value of ", prod_value,
-                          " with Deliquency Rate of ", prod_delin)
+subtitle_recent <- paste0("Avg Total Production Loan Value of ", prod_value,
+                          "\nDeliquency Rate of ", prod_delin)
 
 
 p1 <- ggplot(gg_states_r, aes(x = long, y = lat)) +
@@ -198,8 +198,8 @@ title_recent <- paste0("Agricultural Production Performance since Q",
 #                           str_sub(max(state_recent$year), -1),
 #                           " ",
 #                           str_sub(max(state_recent$year), 1, 4))
-subtitle_recent <- paste0("Average Total Loan Value of ", prod_value,
-                          " with Deliquency Rate of ", prod_delin)
+subtitle_recent <- paste0("Avg Total Production Loan Value of ", prod_value,
+                          "\nDeliquency Rate of ", prod_delin)
 
 
 p1 <- ggplot(gg_states_r, aes(x = long, y = lat)) +
@@ -233,8 +233,8 @@ title_recent <- paste0("Agricultural Real Estate Performance since Q",
 #                           str_sub(max(state_recent$year), -1),
 #                           " ",
 #                           str_sub(max(state_recent$year), 1, 4))
-subtitle_recent <- paste0("Average Total Loan Value of ", re_value,
-                          " with Deliquency Rate of ", re_delin)
+subtitle_recent <- paste0("Avg Total Farmland Loan Value of ", re_value,
+                          "\nDeliquency Rate of ", re_delin)
 
 
 p1 <- ggplot(gg_states_r, aes(x = long, y = lat)) +
@@ -262,8 +262,8 @@ title_recent <- paste0("Agricultural Real Estate Performance since Q",
 #                           str_sub(max(state_recent$year), -1),
 #                           " ",
 #                           str_sub(max(state_recent$year), 1, 4))
-subtitle_recent <- paste0("Average Total Loan Value of ", re_value,
-                          " with Deliquency Rate of ", re_delin)
+subtitle_recent <- paste0("Avg Total Farmland Loan Value of ", re_value,
+                          "\nDeliquency Rate of ", re_delin)
 
 
 p1 <- ggplot(gg_states_r, aes(x = long, y = lat)) +
@@ -317,8 +317,8 @@ title_recent <- paste0("Agricultural Performance since Q",
 #                           str_sub(max(state_recent$year), -1),
 #                           " ",
 #                           str_sub(max(state_recent$year), 1, 4))
-subtitle_recent <- paste0("Average Total Loan Value of ", tot_value_oh,
-                          " with Deliquency Rate of ", tot_delin_oh)
+subtitle_recent <- paste0("Avg Total Ag Loan Value of ", tot_value_oh,
+                          "\nDeliquency Rate of ", tot_delin_oh)
 
 p1 <- ggplot(ohio_map, aes(x = long, y = lat)) +
   geom_polygon(aes(group = group, fill = drate_ag_tot), colour = "grey") +
@@ -349,8 +349,8 @@ title_recent <- paste0("Agricultural Performance since Q",
 #                           str_sub(max(state_recent$year), -1),
 #                           " ",
 #                           str_sub(max(state_recent$year), 1, 4))
-subtitle_recent <- paste0("Average Total Loan Value of ", tot_value_oh,
-                          " with Deliquency Rate of ", tot_delin_oh)
+subtitle_recent <- paste0("Avg Total Ag Loan Value of ", tot_value_oh,
+                          "\nDeliquency Rate of ", tot_delin_oh)
 
 p1 <- ggplot(ohio_map, aes(x = long, y = lat)) +
   geom_polygon(aes(group = group, fill = drate_ag_tot), colour = "grey") +
@@ -381,8 +381,8 @@ title_recent <- paste0("Agricultural Production Performance since Q",
 #                           str_sub(max(state_recent$year), -1),
 #                           " ",
 #                           str_sub(max(state_recent$year), 1, 4))
-subtitle_recent <- paste0("Average Total Loan Value of ", prod_value_oh,
-                          " with Deliquency Rate of ", prod_delin_oh)
+subtitle_recent <- paste0("Avg Total Production Loan Value of ", prod_value_oh,
+                          "\nDeliquency Rate of ", prod_delin_oh)
 
 
 p1 <- ggplot(ohio_map, aes(x = long, y = lat)) +
@@ -408,8 +408,8 @@ title_recent <- paste0("Agricultural Production Performance since Q",
 #                           str_sub(max(state_recent$year), -1),
 #                           " ",
 #                           str_sub(max(state_recent$year), 1, 4))
-subtitle_recent <- paste0("Average Total Loan Value of ", prod_value_oh,
-                          " with Deliquency Rate of ", prod_delin_oh)
+subtitle_recent <- paste0("Avg Total Production Loan Value of ", prod_value_oh,
+                          "\nDeliquency Rate of ", prod_delin_oh)
 
 
 p1 <- ggplot(ohio_map, aes(x = long, y = lat)) +
@@ -443,8 +443,8 @@ title_recent <- paste0("Agricultural Real Estate Performance since Q",
 #                           str_sub(max(state_recent$year), -1),
 #                           " ",
 #                           str_sub(max(state_recent$year), 1, 4))
-subtitle_recent <- paste0("Average Total Loan Value of ", re_value_oh,
-                          " with Deliquency Rate of ", re_delin_oh)
+subtitle_recent <- paste0("Avg Total Farmland Loan Value of ", re_value_oh,
+                          "\nDeliquency Rate of ", re_delin_oh)
 
 
 p1 <- ggplot(ohio_map, aes(x = long, y = lat)) +
@@ -472,8 +472,8 @@ title_recent <- paste0("Agricultural Real Estate Performance since Q",
 #                           str_sub(max(state_recent$year), -1),
 #                           " ",
 #                           str_sub(max(state_recent$year), 1, 4))
-subtitle_recent <- paste0("Average Total Loan Value of ", re_value_oh,
-                          " with Deliquency Rate of ", re_delin_oh)
+subtitle_recent <- paste0("Avg Total Farmland Loan Value of ", re_value_oh,
+                          "\nDeliquency Rate of ", re_delin_oh)
 
 
 p1 <- ggplot(ohio_map, aes(x = long, y = lat)) +
