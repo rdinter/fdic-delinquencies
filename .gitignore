@@ -26,3 +26,5 @@ vignettes/*.pdf
 rsconnect/
 .Rproj.user
 fdic-delinquencies.Rproj
+junk
+notes.md
