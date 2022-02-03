@@ -31,7 +31,7 @@ sod_files <- paste0(data_source, "/ALL_",
 
 map2(sod_urls, sod_files, function(urls, files){
   if (!file.exists(files) & !http_error(urls)) {
-    Sys.sleep(runif(1, 2, 3))
+    Sys.sleep(runif(1, 20, 30))
     download.file(urls, files, mode = "wb")
     }
   })
